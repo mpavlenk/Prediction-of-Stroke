@@ -1,0 +1,130 @@
+library(plyr)
+library(dplyr)
+library(ggplot2)
+library(DT)
+library(psych)
+library(purrr)
+library(pscl)
+library(ROCR)
+
+train.data<-read.csv("train_2v.csv", header = TRUE)
+head(train.data)
+str(train.data)
+summary(train.data)
+
+sort(apply(train.data, 2, function(x){sum(is.na(x))/length(x)}), decreasing = TRUE)
+train.data$bmi<-ifelse(is.na(train.data$bmi), mean(train.data$bmi, na.rm = TRUE), train.data$bmi)
+train.data$smoking_status[train.data$smoking_status==""]<-NA
+train.data$smoking_status<-as.factor(ifelse(is.na(train.data$smoking_status), "Unknown", paste(train.data$smoking_status)))
+train.data<-subset(train.data, select=-c(id))
+train.data<-filter(train.data, gender!="Other")
+train.data$male=ifelse(train.data$gender=="Male",1,0)
+train.data$gender=NULL
+train.data$married=ifelse(train.data$ever_married=="Yes",1,0)
+train.data$ever_married=NULL
+train.data$rural_res=ifelse(train.data$Residence_type=="Rural",1,0)
+train.data$Residence_type=NULL
+head(train.data)
+
+train.data %>% split(.$stroke) %>% map(describe)
+
+lapply(train.data[,c('age','male' , 'hypertension' , 'heart_disease' ,'married', 
+                     'rural_res' , 'avg_glucose_level' , 
+                     'bmi' )], function(i) t.test(i ~ train.data$stroke))
+
+ggplot(train.data,aes(x=age,group=stroke,fill=stroke))+
+  geom_histogram(position="identity",binwidth=0.5)+theme_minimal()
+
+ggplot(train.data,aes(x=male,group=stroke,fill=stroke))+
+  geom_histogram(position="identity",binwidth=0.5)+theme_minimal()
+ 
+train.data%>%
+  group_by(male, stroke = as.factor(stroke))%>%
+  summarise(count = n())%>%
+  mutate(percent = round(count/sum(count)*100))%>%
+  datatable()
+
+ggplot(train.data,aes(x=married,group=stroke,fill=stroke))+
+  geom_histogram(position="identity",binwidth=0.5)+theme_minimal()
+train.data%>%
+  group_by(married, stroke = as.factor(stroke))%>%
+  summarise(count = n())%>%
+  mutate(percent = round(count/sum(count)*100))%>%
+  datatable()
+
+ggplot(train.data,aes(x=hypertension,group=stroke,fill=stroke))+
+  geom_histogram(position="identity",binwidth=0.5)+theme_minimal()
+train.data%>%
+  group_by(hypertension, stroke = as.factor(stroke))%>%
+  summarise(count = n())%>%
+  mutate(percent = round(count/sum(count)*100))%>%
+  datatable()
+
+bmi<-train.data %>%
+  group_by(stroke)%>%
+  summarise(bmi=mean(bmi))
+ggplot(bmi,aes(x = stroke,y=bmi)) +
+  geom_bar(stat="identity",position=position_identity(), fill="lightblue")+theme_minimal()
+
+avg_clucose_level<-train.data %>%
+  group_by(stroke)%>%
+  summarise(avg_clucose_level=mean(bmi))
+ggplot(avg_clucose_level,aes(x = stroke,y=avg_clucose_level)) +
+  geom_bar(stat="identity",position=position_identity(), fill="lightblue")+theme_minimal()
+ggplot(train.data, aes(x = age, y = avg_glucose_level)) + 
+  geom_point() +
+  facet_wrap(~ stroke)+
+  geom_smooth(method = 'lm', color='lightblue')
+
+ggplot(train.data, aes(as.factor(heart_disease), age, fill = as.factor(heart_disease)))+
+  geom_boxplot()+
+  labs(title = "Heart Disease by stoke/non-stroke patients",
+    x = "heart_disease")+
+  scale_fill_discrete("heart_disease")+
+  facet_wrap(~ stroke)+
+  theme(plot.title = element_text(hjust = .5))
+
+train.data%>%
+  group_by(work_type, stroke = as.factor(stroke))%>%
+  summarise(count = n())%>%
+  mutate(percent = round(count/sum(count)*100))%>%
+  datatable()
+
+ggplot(train.data, aes(reorder(work_type, avg_glucose_level), avg_glucose_level, fill = work_type))+
+  geom_boxplot()+
+  labs(    title = "Glucose level by Work Type",
+    x = "work_type")+
+  theme(plot.title = element_text(hjust = .5))
+ggplot(train.data, aes(reorder(work_type, bmi), bmi, fill = work_type))+
+  geom_boxplot()+
+  labs(    title = "BMI by Work Type",
+           x = "bmi")+
+  theme(plot.title = element_text(hjust = .5))
+
+train.data%>%
+  group_by(rural_res, stroke = as.factor(stroke))%>%
+  summarise(count = n())%>%
+  mutate(percent = round(count/sum(count)*100))%>%
+  datatable()
+
+train.data%>%
+  group_by(smoking_status, stroke = as.factor(stroke))%>%
+  summarise(count = n())%>%
+  mutate(percent = round(count/sum(count)*100))%>%
+  datatable()
+ggplot(train.data,aes(x=smoking_status,group=stroke,fill=stroke))+
+  geom_bar(position="dodge")+theme_minimal()
+
+summary(glm(stroke ~ age+married+male+hypertension+bmi+avg_glucose_level+
+              heart_disease, data=train.data, family="binomial"))
+model<-glm(stroke ~ age+hypertension+avg_glucose_level+
+              heart_disease, data=train.data, family=binomial)
+summary(model)
+exp(coef(model))
+
+pR2(model)
+
+prob <- predict(model, train.data, type="response")
+pred <- prediction(prob, train.data$stroke)
+perf <- performance(pred, measure = "tpr", x.measure = "fpr")
+plot(perf)
