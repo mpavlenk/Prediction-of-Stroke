@@ -21,4 +21,4 @@ IX. Evaluation of the model (Pseudo R^2, ROC curve)
 X. Conclusion
 
 Screenshots:
-<img src="smoking status.jpg" alt="smoking status">
+<img src="https://github.com/mpavlenk/Prediction-of-Stroke/blob/master/images/Glucose%20for%20healthy%20VS%20stroke%20patients.JPG.jpg" alt="smoking status">
