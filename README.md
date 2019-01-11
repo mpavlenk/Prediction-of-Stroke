@@ -21,4 +21,4 @@ IX. Evaluation of the model (Pseudo R^2, ROC curve)
 X. Conclusion
 
 Screenshots:
-<img src="Capture.jpg" alt="Age vs glucose level">
+<img src="smoking status.jpg" alt="smoking status">
