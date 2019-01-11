@@ -21,4 +21,4 @@ IX. Evaluation of the model (Pseudo R^2, ROC curve)
 X. Conclusion
 
 Screenshots:
-<img src="smoking status.JPG" alt="smoking status">
+<img src="https://mpavlenk.github.io/Prediction-of-Stroke/images/smoking status.JPG" alt="smoking status">
