@@ -1,4 +1,5 @@
 [R code link](https://mpavlenk.github.io/Prediction-of-Stroke/Prediction_of_Stroke.html)
+
 Data mining task: Prediction of Stroke
 Data mining technique used: Regression
 
