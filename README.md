@@ -17,7 +17,7 @@ V. T-test
 VI. Visualization
 VII. Regression analysis
 VIII. Interpreting results of algorithms
-IX. Evaluation of the model (Pseudo R^2, AUC curve)
+IX. Evaluation of the model (Pseudo R^2, ROC curve)
 X. Conclusion
 
 Screenshots:
